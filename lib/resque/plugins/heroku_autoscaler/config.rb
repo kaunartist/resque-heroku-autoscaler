@@ -33,11 +33,16 @@ module Resque
           @wait_time || 60
         end
 
-        def new_worker_count(pending=nil, *payload, &calculate_count)
+        attr_writer :process_list
+        def process_list
+          @process_list || ['worker']
+        end
+
+        def new_worker_count(pending=nil, process=nil, *payload, &calculate_count)
           if calculate_count
             @new_worker_count = calculate_count
           else
-            @new_worker_count.call(pending, *payload)
+            @new_worker_count.call(pending, process, *payload)
           end
         end
 

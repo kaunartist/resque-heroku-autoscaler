@@ -60,6 +60,16 @@ describe Resque::Plugins::HerokuAutoscaler::Config do
     end
   end
 
+  describe ".process_list" do
+
+    it{ Resque::Plugins::HerokuAutoscaler::Config.process_list.should == ['worker']}
+
+    it "can be set" do
+      subject.process_list = ['my_worker', 'your_worker']
+      subject.process_list.should == ['my_worker', 'your_worker']
+    end
+  end
+
   describe ".new_worker_count" do
     before do
       @original_method = Resque::Plugins::HerokuAutoscaler::Config.instance_variable_get(:@new_worker_count)
@@ -88,6 +98,31 @@ describe Resque::Plugins::HerokuAutoscaler::Config do
 
       job_payload = ["test_queue", "more", "payload"]
       subject.new_worker_count(10, *job_payload).should == 10
+    end
+
+    it "should be able to take the process name as an argument" do
+      subject.new_worker_count do |pending, process|
+        if process == "worker"
+          10
+        else
+          pending/5
+        end
+      end
+
+      subject.new_worker_count(10, 'worker').should == 10
+    end
+
+    it "should be able to take the process name and Resque job's payload as arguments" do
+      subject.new_worker_count do |pending, process, queue|
+        if process == 'worker' && queue == "test_queue"
+          10
+        else
+          pending/5
+        end
+      end
+
+      job_payload = ["test_queue", "more", "payload"]
+      subject.new_worker_count(10, 'worker', *job_payload).should == 10
     end
 
     context "when the proc was not yet set" do
