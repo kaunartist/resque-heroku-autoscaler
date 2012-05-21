@@ -58,7 +58,7 @@ module Resque
       def scale
         Resque::Plugins::HerokuAutoscaler::Config.process_list.each do |process|
           new_count = Resque::Plugins::HerokuAutoscaler::Config.new_worker_count(Resque.info[:pending], process)
-          set_workers(process, new_count) if new_count == 0 || new_count > current_workers(process)
+          set_workers(process, new_count) if new_count != current_workers(process)
           Resque.redis.set("#{process}:last_scaled", Time.now)
         end
       end

@@ -187,16 +187,6 @@ describe Resque::Plugins::HerokuAutoscaler do
       end
     end
 
-    context "when the new worker count might shut down busy workers" do
-      before do
-        stub(TestJob).current_workers { 2 }
-      end
-      it "should not scale down workers since we don't want to accidentally shut down busy workers" do
-        dont_allow(TestJob).set_workers
-        TestJob.calculate_and_set_workers
-      end
-    end
-
     describe "when we changed the worker count in less than minimum wait time" do
       before do
         subject.config { |c| c.wait_time = 5}
