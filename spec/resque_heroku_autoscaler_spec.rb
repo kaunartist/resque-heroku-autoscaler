@@ -37,47 +37,6 @@ describe Resque::Plugins::HerokuAutoscaler do
         TestJob.after_enqueue_scale_workers_up("some", "random", "aguments", 42)
       end.should_not raise_error
     end
-
-    it "should create one worker" do
-
-      @original_method = Resque::Plugins::HerokuAutoscaler::Config.instance_variable_get(:@new_worker_count)
-      subject.config do |c|
-        c.new_worker_count do
-          5
-        end
-      end
-
-      stub(TestJob).current_workers { 0 }
-      stub(Resque).info { {:pending => 100, :workers => 0} }
-      mock(TestJob).set_workers('worker', 1)
-      TestJob.after_enqueue_scale_workers_up
-
-      Resque::Plugins::HerokuAutoscaler::Config.instance_variable_set(:@new_worker_count, @original_method)
-    end
-
-    it "should set last_scaled" do
-      now = Time.now
-      Timecop.freeze(now)
-      stub(TestJob).set_workers('worker', 1)
-
-      TestJob.after_enqueue_scale_workers_up
-      Resque.redis.get('worker:last_scaled').should == now.to_s
-
-      Timecop.return
-    end
-
-    context "when scaling workers is disabled" do
-      before do
-        subject.config do |c|
-          c.scaling_disabled = true
-        end
-      end
-
-      it "should not use the heroku client" do
-        dont_allow(TestJob).heroku_client
-        TestJob.after_enqueue_scale_workers_up
-      end
-    end
   end
 
   describe ".after_perform_scale_workers" do

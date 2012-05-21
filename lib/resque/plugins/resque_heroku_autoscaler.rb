@@ -7,14 +7,7 @@ module Resque
       @@heroku_client = nil
 
       def after_enqueue_scale_workers_up(*args)
-        if !Resque::Plugins::HerokuAutoscaler::Config.scaling_disabled? && \
-          Resque.info[:workers] == 0 && \
-          Resque::Plugins::HerokuAutoscaler::Config.new_worker_count(Resque.info[:pending]) >= 1
-          Resque::Plugins::HerokuAutoscaler::Config.process_list.each do |process|
-            set_workers(process, 1)
-            Resque.redis.set("#{process}:last_scaled", Time.now)
-          end
-        end
+        calculate_and_set_workers
       end
 
       def after_perform_scale_workers(*args)
