@@ -112,6 +112,18 @@ describe Resque::Plugins::HerokuAutoscaler::Config do
       subject.new_worker_count(10, 'worker').should == 10
     end
 
+    it "should be able to take the current worker count for the process as an argument" do
+      subject.new_worker_count do |pending, process, current_worker_count|
+        if process == "worker" && current_worker_count == 5
+          10
+        else
+          pending/5
+        end
+      end
+
+      subject.new_worker_count(10, 'worker', 5).should == 10
+    end
+
     it "should be able to take the process name and Resque job's payload as arguments" do
       subject.new_worker_count do |pending, process, queue|
         if process == 'worker' && queue == "test_queue"
