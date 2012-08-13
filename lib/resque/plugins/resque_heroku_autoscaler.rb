@@ -56,6 +56,7 @@ module Resque
             new_count = Resque::Plugins::HerokuAutoscaler::Config.new_worker_count(Resque.info[:pending], process, current_count)
             set_workers(process, new_count) if new_count != current_count
             Resque.redis.set("#{process}:last_scaled", Time.now)
+            log "Set last_scaled."
           rescue RestClient::Exception => client_error
             log client_error
           end
@@ -73,6 +74,10 @@ module Resque
       end
 
       def time_to_scale_process?(process)
+        log "???"
+        unless (Resque.redis.get("#{process}:last_scaled"))
+          Resque.redis.set("#{process}:last_scaled", Time.now)
+        end
         (Time.now - Time.parse(Resque.redis.get("#{process}:last_scaled"))) >= Resque::Plugins::HerokuAutoscaler::Config.wait_time
       end
 
