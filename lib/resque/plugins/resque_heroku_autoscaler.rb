@@ -75,6 +75,9 @@ module Resque
 
       def time_to_scale_process?(process)
         log "???"
+        log "Process: #{process}"
+        log Resque.redis.get("#{process}:last_scaled"))
+        log "###"
         unless (Resque.redis.get("#{process}:last_scaled"))
           Resque.redis.set("#{process}:last_scaled", Time.now)
         end
